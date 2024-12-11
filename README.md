@@ -1,0 +1,1 @@
+The raw data was downloaded from the European Social Survey. I selected the columns necissary for my research questions. The columns were renamed and outliers were removed. I continued to visualize the three hypotheses with ggplot bar graphs. Finally, I applied the statistical analyses.
