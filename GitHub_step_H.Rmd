@@ -13,8 +13,8 @@ ESS11 <- read_csv("ESS11.csv")
 ```
 
 Hypotheses:
-1) One's education level influences one’s endorsement of women needing protection from men
-2) One's religiosity level influences one’s endorsement of women needing protection from men
+1) Education level influences one’s endorsement of women needing protection from men
+2) Religiosity level influences one’s endorsement of women needing protection from men
 3) With age, women will be less likely endorse that women need protection from men, and men will be more likely endorse that women need protection from men
 
 
