@@ -1,0 +1,130 @@
+---
+title: "Step H"
+author: "Kora Welch"
+date: "11/20/24"
+output:
+  html_document: default
+  pdf_document: default
+---
+Download the dataset:
+```{r}
+library(readr)
+ESS11 <- read_csv("ESS11.csv")
+```
+
+Hypotheses:
+1) Education level influences one’s endorsement of women needing protection from men
+2) Religiosity level influences one’s endorsement of women needing protection from men
+3) With age, women will less likely endorse that women need protection from men, and men will more likely endorse that women need protection from men
+
+
+Filter columns:
+```{r}
+library(tidyverse)
+
+ess11New <- ESS11 %>%
+  select(idno, gndr, wprtbym, rlgdgr, agea, edulvlb)
+```
+
+Re-name columns:
+```{r}
+colnames(ess11New) = c('Participant_id', 'Gender', 'Women_Protection', 'Religion_Level', 'Age', 'Highest_Edu_Lvl')
+```
+
+Remove/rename variables:
+```{r}
+ess11New <- subset(ess11New, ess11New$Age != 999)
+
+ess11New <- subset(ess11New, ess11New$Highest_Edu_Lvl != 7777)
+ess11New <- subset(ess11New, ess11New$Highest_Edu_Lvl != 8888)
+ess11New <- subset(ess11New, ess11New$Highest_Edu_Lvl != 9999)
+
+ess11New <- subset(ess11New, ess11New$Women_Protection != 7)
+ess11New <- subset(ess11New, ess11New$Women_Protection != 8)
+ess11New <- subset(ess11New, ess11New$Women_Protection != 9)
+
+ess11New$Gender <- car::recode(ess11New$Gender, recodes = " '1' = '0' ; '2' = '1' ")
+#0 = Female, 1 = Male
+```
+
+
+Data visualization:
+```{r}
+#Hypothesis 1
+library(ggplot2)
+library(jtools)
+
+ggplot(ess11New, aes(Women_Protection, fill = as.factor(Highest_Edu_Lvl))) + geom_bar() + scale_color_manual() + theme_apa() + labs(x = "Belief that Women Need Protection From Men", y = "Frequency", title = "Education Level and Benevolent Sexism") + theme(text = element_text(family = "Times New Roman")) + scale_x_continuous(limits = c(0, 6), breaks = 1:5) + theme(strip.text.x = element_text(size = 12)) + theme(axis.text.x = element_text(size = 12)) + theme(axis.text.y = element_text(size = 12)) + theme(axis.title.x = element_text(size = 12)) + theme(axis.title.y = element_text(size = 12)) 
+```
+
+
+```{r}
+#Hypothesis 2
+library(ggplot2)
+library(RColorBrewer)
+
+ggplot(ess11New, aes(Religion_Level, fill = as.factor(Women_Protection))) + geom_bar() + labs(x = "Religion Level", y = "Count") + scale_fill_brewer(palette = "Reds") + theme_apa() + labs(x = "Religion Level", y ="Frequency", title = "Religion Level and Benevolent Sexism Endorsement") + theme(text = element_text(family = "Times New Roman")) +  theme(strip.text.x = element_text(size = 12)) + theme(axis.text.x = element_text(size = 12)) + theme(axis.text.y = element_text(size = 12)) + theme(axis.title.x = element_text(size = 12)) + theme(axis.title.y = element_text(size = 12)) + scale_x_continuous(limits = c(-1, 11), breaks = 0:10)
+```
+
+
+```{r}
+#Hypothesis 3
+library(ggplot2)
+library(viridis)
+
+ess11New$Gender <- as.factor(ess11New$Gender)
+levels(ess11New$Gender)<- c("Female", "Male")
+
+ggplot(ess11New, aes(Women_Protection, fill = as.factor(Age))) + geom_bar() + facet_wrap(~Gender) + scale_color_manual() + labs(x = "Belief that Women Need Protection From Men", y = "Frequency", title = "Genders' Benevolent Sexism Ratings and Age") + theme_apa() + theme(text = element_text(family = "Times New Roman")) + scale_x_continuous(limits = c(0, 6), breaks = 1:5) + theme(strip.text.x = element_text(size = 12)) + theme(axis.text.x = element_text(size = 12)) + theme(axis.text.y = element_text(size = 12)) + theme(axis.title.x = element_text(size = 12)) + theme(axis.title.y = element_text(size = 12))
+```
+
+
+Statistical analyses: 
+```{r}
+#Hypothesis 1: Education level influences one’s endorsement of women needing protection from men
+
+ess11New$wp_num <- as.numeric(levels(as.factor(ess11New$Women_Protection)))[as.factor(ess11New$Women_Protection)]
+is.numeric(ess11New$Women_Protection)
+
+eduAnova <- aov(Women_Protection ~ as.factor(Highest_Edu_Lvl),  data = ess11New)
+summary(eduAnova)
+
+TukeyHSD(eduAnova)
+
+etaSquared<- 1016/(1016+33833)
+etaSquared
+```
+
+
+```{r}
+#Hypothesis 2: Religiosity level influences one’s endorsement of women needing protection from men
+
+wp_num <- as.numeric(levels(as.factor(ess11New$Women_Protection)))[as.factor(ess11New$Women_Protection)]
+is.numeric(ess11New$Women_Protection)
+
+religionAnova <- aov(as.numeric(Women_Protection) ~ as.factor(Religion_Level), data = ess11New)
+summary(religionAnova)
+
+TukeyHSD(religionAnova)
+
+etaSquared2 <- 665/(665+34184)
+etaSquared2
+```
+
+
+```{r}
+#Hypothesis 3: With age, women will less strongly endorse that women need protection from men, and men will more strongly endorse that women need protection from men
+
+ess11New$Gender <- as.factor(ess11New$Gender)
+levels(ess11New$Gender) <- c(0, 1) 
+# 0 = Female, 1 = Male
+levels(ess11New$Gender)
+
+ess11New$Gender <- relevel(ess11New$Gender, ref= "0") 
+
+ageGenderlm <- lm(Women_Protection ~ Age * Gender, data = ess11New)
+summary(ageGenderlm)
+```
+
+
+
